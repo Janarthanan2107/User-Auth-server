@@ -26,12 +26,12 @@ export const register = async (req, res) => {
         await new USER({ username, email, password: hashPassword }).save()
             .then((user) => {
                 return res.status(201).json({
-                    success: true, message: `Registration successfully, id : ${user._id}`
+                    success: true, message: `Registration successfully`
                 })
             })
             .catch((error) => {
                 res.status(400).json({
-                    success: false, message: `Something went wrong ! error is : ${error}`
+                    success: false, message: `${error}`
                 })
             });
     } catch (error) {
