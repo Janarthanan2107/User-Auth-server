@@ -67,7 +67,7 @@ export const login = async (req, res) => {
         // send token with expire time
         const token = jwt.sign({ _id: user.id, username: user.username, email: user.email },
             process.env.SECRET, { expiresIn: "3d" }
-            )
+        )
 
         // set jwt secure , http only cookie
         res.cookie("token", token, {
@@ -85,5 +85,19 @@ export const login = async (req, res) => {
             success: false, message: `Something went wrong ! error is : ${error}`
         })
     }
+}
 
+// user logout
+export const logout = async (req, res) => {
+    try {
+        res.clearCookie("token", {
+            sameSite: "none",
+            secure: true,
+        }).json({ message: "User Logged out successfully!!" })
+    } catch (error) {
+        // catch error and send as json
+        res.status(500).json({
+            success: false, message: `Something went wrong ! error is : ${error}`
+        })
+    }
 }
