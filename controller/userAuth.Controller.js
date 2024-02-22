@@ -77,7 +77,8 @@ export const login = async (req, res) => {
             expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days in milliseconds
         })
 
-        res.status(200).json({ message: "Login successfully!!" })
+        res.status(200).json({ message: "Login successfully!!", user: { _id: user.id, username: user.username, email: user.email } });
+
 
     } catch (error) {
         // catch error and send as json

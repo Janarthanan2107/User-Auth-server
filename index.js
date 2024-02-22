@@ -16,7 +16,7 @@ const app = express();
 
 // primary middlewares
 // Enable CORS for all routes
-app.use(cors());
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.urlencoded({ limit: "500mb", extended: false }));
 app.use(express.json({ limit: "500mb" }));
 
