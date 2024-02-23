@@ -1,19 +1,19 @@
 // dependencies
 import express from "express"
-import cors from "cors"
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 import dotenv from "dotenv"
+import cors from "cors"
+import cookieParser from "cookie-parser";
 import { readFileSync } from "fs";
 
 // route
 import userAuthRouter from "./routes/userAuth.Route.js"
-import cookieParser from "cookie-parser";
 
 // configs
-dotenv.config();
 const PORT = process.env.PORT;
-const CONNECTION_URL = process.env.CONNECTION_URL;
 const app = express();
+dotenv.config();
+app.use(express.json({ limit: "500mb" }));
 
 // primary middlewares
 // Enable CORS for all routes
@@ -23,9 +23,8 @@ app.use(
         credentials: true, // Allow cookies with CORS
     })
 );
-app.use(express.urlencoded({ limit: "500mb", extended: false }));
-app.use(express.json({ limit: "500mb" }));
 app.use(cookieParser());
+app.use(express.urlencoded({ limit: "500mb", extended: false }));
 
 // MVC routes
 app.use("/api/v1/userAuth", userAuthRouter);
@@ -47,9 +46,10 @@ app.use("/", (req, res) => {
 });
 
 // connections
-mongoose.connect(CONNECTION_URL).then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server is listening in the Port: ${PORT}`)
+mongoose.connect(process.env.CONNECTION_URL).then(() => {
+    app.listen(process.env.PORT, () => {
+        console.log("Database is connected successfully!");
+        console.log(`Server is listening in the Port: ${process.env.PORT}`)
     })
 }).catch((err) => {
     console.log(err)

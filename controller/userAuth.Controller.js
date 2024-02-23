@@ -1,76 +1,53 @@
-import USER from "../models/userAuth.Models.js";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
+import USER from "../models/userAuth.Models.js";
 
-// user auth register
 export const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        // check user is existing
-        const existingUsername = await USER.findOne({ username })
-        if (existingUsername) {
-            return res.status(400).json({ message: "Username already taken!" })
+        // Check if the email is already registered
+        const existingUser = await USER.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "Email already exists" });
         }
 
-        const existingEmail = await USER.findOne({ email })
-        if (existingEmail) {
-            return res.status(400).json({ message: "Email already Exist!" })
-        }
+        // Hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-        // hide password (or) hash password
-        const salt = await bcrypt.genSalt(10)
-        const hashPassword = await bcrypt.hash(password, salt);
+        // Create a new user
+        const newUser = new USER({ username, email, password: hashedPassword });
+        const savedUser = await newUser.save();
 
-        // create user
-        await new USER({ username, email, password: hashPassword }).save()
-            .then((user) => {
-                return res.status(201).json({
-                    success: true, message: `Registration successfully`
-                })
-            })
-            .catch((error) => {
-                res.status(400).json({
-                    success: false, message: `${error}`
-                })
-            });
-    } catch (error) {
-        // catch error and send as json
-        res.status(500).json({
-            success: false, message: "Internal Server Error!"
-        })
+        res.status(201).json(savedUser);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
     }
 }
 
-// user auth login
 export const login = async (req, res) => {
     try {
-        // find user
-        const user = await USER.findOne({ email: req.body.email })
+        const user = await USER.findOne({ email: req.body.email });
 
-        // show if user is not available or exist
         if (!user) {
-            return res.status(404).json({ message: "User not found!" });
+            return res.status(404).json({ message: "User not found" });
         }
 
-        // encrypt the username & hashed password using bcrypt
-        const compareEmail = req.body.email;
-        if (compareEmail !== user.email) {
-            return res.status(404).json({ message: "Email not found!" });
+        const match = await bcrypt.compare(req.body.password, user.password);
+
+        if (!match) {
+            return res.status(401).json({ message: "Incorrect password" });
         }
 
-        const comparePassword = await bcrypt.compare(req.body.password, user.password)
-        if (!comparePassword) {
-            return res.status(404).json({ message: "Password not matched!" });
-        }
+        const token = jwt.sign(
+            { _id: user._id, username: user.username, email: user.email },
+            process.env.SECRET,
+            { expiresIn: "3d" }
+        );
 
-        // send token with expire time
-        const token = jwt.sign({ _id: user.id, username: user.username, email: user.email },
-            process.env.SECRET, { expiresIn: "3d" }
-        )
-
-        // In your login route
-        console.log("Token:", token);
+        // Set JWT token in a secure, HTTP-only cookie
         res.cookie("token", token, {
             httpOnly: true,
             secure: true,
@@ -78,31 +55,16 @@ export const login = async (req, res) => {
             expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
         });
 
-        console.log("Cookies:", req.cookies);
-
-        res.status(200).json({ message: "Login successfully!!", token, user: { _id: user.id, username: user.username, email: user.email } });
-
-
-    } catch (error) {
-        // catch error and send as json
-        res.status(500).json({
-            success: false, message: `Something went wrong ! error is : ${error}`
-        })
+        res.status(200).json({ message: "Login successful" });
+    } catch (err) {
+        res.status(500).json({ message: err.message }); // Handle error more gracefully
     }
 }
 
-// user logout
 export const logout = async (req, res) => {
     try {
-        res.clearCookie("token", {
-            sameSite: "none",
-            secure: true,
-        }).json({ message: "User Logged out successfully!!" })
-    } catch (error) {
-        // catch error and send as json
-        res.status(500).json({
-            success: false, message: `Something went wrong ! error is : ${error}`
-        })
+        res.clearCookie("token").send("User logged out successfully");
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 }
-
