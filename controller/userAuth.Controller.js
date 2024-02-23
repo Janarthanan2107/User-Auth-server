@@ -69,15 +69,18 @@ export const login = async (req, res) => {
             process.env.SECRET, { expiresIn: "3d" }
         )
 
-        // set jwt secure , http only cookie
+        // In your login route
+        console.log("Token:", token);
         res.cookie("token", token, {
-            httpsOnly: true,
+            httpOnly: true,
             secure: true,
             sameSite: "none",
-            expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days in milliseconds
-        })
+            expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+        });
 
-        res.status(200).json({ message: "Login successfully!!", user: { _id: user.id, username: user.username, email: user.email } });
+        console.log("Cookies:", req.cookies);
+
+        res.status(200).json({ message: "Login successfully!!", token, user: { _id: user.id, username: user.username, email: user.email } });
 
 
     } catch (error) {
@@ -102,3 +105,4 @@ export const logout = async (req, res) => {
         })
     }
 }
+
