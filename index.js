@@ -29,7 +29,11 @@ app.use(cookieParser());
 
 // MVC routes
 app.use("/api/v1/userAuth", userAuthRouter);
-
+app.get("/check-token", (req, res) => {
+    const token = req.cookies.token;
+    res.json({ token, cookies: JSON.stringify(req.cookies) }); // Stringify the cookies object
+  });
+  
 // Catch-all route
 app.use("/", (req, res) => {
     try {
