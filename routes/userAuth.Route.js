@@ -14,6 +14,7 @@ router.get("/logout", logout);
 
 // Refetch User
 router.get("/refetch", authenticateToken, (req, res) => {
+  // console.log(req)
   res.status(200).json(req.user); // req.user contains user data from JWT payload
 });
 

@@ -10,7 +10,6 @@ import { readFileSync } from "fs";
 import userAuthRouter from "./routes/userAuth.Route.js"
 
 // configs
-const PORT = process.env.PORT;
 const app = express();
 dotenv.config();
 app.use(express.json({ limit: "500mb" }));
@@ -19,7 +18,7 @@ app.use(express.json({ limit: "500mb" }));
 // Enable CORS for all routes
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: ["http://localhost:5173", "http://localhost:3000"],
         credentials: true, // Allow cookies with CORS
     })
 );
@@ -28,11 +27,7 @@ app.use(express.urlencoded({ limit: "500mb", extended: false }));
 
 // MVC routes
 app.use("/api/v1/userAuth", userAuthRouter);
-app.get("/check-token", (req, res) => {
-    const token = req.cookies.token;
-    res.json({ token, cookies: JSON.stringify(req.cookies) }); // Stringify the cookies object
-  });
-  
+
 // Catch-all route
 app.use("/", (req, res) => {
     try {
